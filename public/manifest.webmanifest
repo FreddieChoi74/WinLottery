@@ -1,0 +1,16 @@
+{
+  "short_name": "로또스코프",
+  "name": "LottoScope - 로또 빅데이터 확률 추천",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0a0e17",
+  "theme_color": "#0d1117",
+  "display": "standalone",
+  "orientation": "portrait"
+}
