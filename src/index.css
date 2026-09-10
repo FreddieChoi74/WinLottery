@@ -390,29 +390,119 @@ body {
   font-weight: 400;
 }
 
-/* Main Action Bar */
-.action-banner {
+/* Main Action Bar & Control Group (Mobile Optimized) */
+.action-control-group {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 0.5rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+  width: 100%;
 }
 
-.action-options {
+.action-row-options {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.filter-btn-compact {
+  flex: 1;
+  white-space: nowrap;
+  justify-content: center;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.85rem;
+}
+
+.filter-badge {
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.72rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.segment-toggle-box {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 0.75rem;
+  padding: 3px;
+  flex: 1.2;
+}
+
+.segment-btn {
+  flex: 1;
+  border: none;
+  padding: 0.55rem 0.4rem;
+  border-radius: 0.6rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  text-align: center;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.segment-btn.active {
+  background: rgba(59, 130, 246, 0.35);
+  color: #60a5fa;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+.action-row-save {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.action-save-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.7rem 0.5rem;
+  border-radius: 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.action-save-btn.copy-btn {
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: #fbbf24;
+}
+
+.action-save-btn.copy-btn:hover {
+  background: rgba(251, 191, 36, 0.2);
+}
+
+.action-save-btn.download-btn {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
+}
+
+.action-save-btn.download-btn:hover {
+  background: rgba(56, 189, 248, 0.18);
 }
 
 .custom-btn-secondary {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-glass);
   color: var(--text-primary);
-  padding: 0.65rem 1.1rem;
+  padding: 0.65rem 1rem;
   border-radius: 0.75rem;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -431,16 +521,18 @@ body {
   background: linear-gradient(135deg, #2563eb, #7c3aed);
   border: none;
   color: white;
-  padding: 0.85rem 1.75rem;
+  padding: 0.9rem 1.75rem;
   border-radius: 0.85rem;
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.6rem;
   box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
   font-family: inherit;
+  width: 100%;
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -786,31 +878,62 @@ body {
   gap: 0.5rem;
 }
 
-/* Responsive adjustments */
+/* Responsive adjustments for Mobile */
 @media (max-width: 768px) {
   .app-container {
-    padding: 1rem 0.75rem 5rem 0.75rem;
-    gap: 1.25rem;
+    padding: 0.75rem 0.6rem 5rem 0.6rem;
+    gap: 1rem;
   }
   .glass-panel {
-    padding: 1.25rem;
+    padding: 1rem 0.85rem;
     border-radius: 1rem;
   }
   .brand-title {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
   }
   .modes-bar {
     grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  .mode-tab-btn {
+    padding: 0.75rem 0.85rem;
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 0.75rem;
   }
   .num-picker-grid {
     grid-template-columns: repeat(7, 1fr);
   }
-  .action-banner {
+  .game-card {
+    padding: 1rem 0.85rem;
+  }
+  .game-card-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.6rem;
   }
-  .generate-hero-btn {
-    justify-content: center;
+  .game-label-box {
+    justify-content: space-between;
     width: 100%;
+  }
+  .game-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .game-balls-container {
+    gap: 0.4rem;
+    justify-content: space-between;
+  }
+  .lotto-ball.ball-lg {
+    width: 44px;
+    height: 44px;
+    font-size: 1.15rem;
+  }
+  .lotto-ball.ball-lg::after {
+    top: 6px;
+    left: 10px;
+    width: 14px;
+    height: 8px;
   }
 }

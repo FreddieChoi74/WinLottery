@@ -187,82 +187,60 @@ export default function RecommendationCard({
         </div>
       </div>
 
-      {/* 2. 제어 옵션 및 생성 버튼 */}
-      <div className="action-banner">
-        <div className="action-options">
-          <button onClick={onOpenFilter} className="custom-btn-secondary">
-            <SlidersHorizontal size={16} />
+      {/* 2. 제어 옵션 및 생성 버튼 (모바일 최적화 2열 배치) */}
+      <div className="action-control-group">
+        {/* 행 1: 맞춤 필터 & 1개/5개 세그먼트 토글 */}
+        <div className="action-row-options">
+          <button onClick={onOpenFilter} className="custom-btn-secondary filter-btn-compact">
+            <SlidersHorizontal size={15} />
             <span>맞춤 필터</span>
             {(includeCount > 0 || excludeCount > 0) && (
-              <span style={{
-                background: '#2563eb',
-                color: '#fff',
-                fontSize: '0.75rem',
-                padding: '1px 6px',
-                borderRadius: '999px',
-                fontWeight: 700
-              }}>
+              <span className="filter-badge">
                 +{includeCount}/-{excludeCount}
               </span>
             )}
           </button>
 
-          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '0.75rem', padding: '3px' }}>
+          <div className="segment-toggle-box">
             <button
               onClick={() => setCount(1)}
-              style={{
-                background: count === 1 ? 'rgba(59,130,246,0.3)' : 'transparent',
-                border: 'none',
-                color: count === 1 ? '#60a5fa' : 'var(--text-secondary)',
-                padding: '0.45rem 0.85rem',
-                borderRadius: '0.6rem',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
+              className={`segment-btn ${count === 1 ? 'active' : ''}`}
             >
               1개 조합
             </button>
             <button
               onClick={() => setCount(5)}
-              style={{
-                background: count === 5 ? 'rgba(59,130,246,0.3)' : 'transparent',
-                border: 'none',
-                color: count === 5 ? '#60a5fa' : 'var(--text-secondary)',
-                padding: '0.45rem 0.85rem',
-                borderRadius: '0.6rem',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                cursor: 'pointer'
-              }}
+              className={`segment-btn ${count === 5 ? 'active' : ''}`}
             >
               5개 (1장 세트)
             </button>
           </div>
+        </div>
 
+        {/* 행 2: 카톡 전송용 이미지 복사 & 파일 저장 (가로 2분할) */}
+        <div className="action-row-save">
           <button
             onClick={handleCopyImageToClipboard}
-            className="custom-btn-secondary"
+            className="action-save-btn copy-btn"
             disabled={isSavingImage || recommendations.length === 0}
             title="클릭 후 카카오톡 채팅창에서 [Ctrl + V] 누르면 사진이 바로 전송됩니다"
-            style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)', background: 'rgba(251, 191, 36, 0.08)' }}
           >
-            <Camera size={16} />
-            <span>{isSavingImage ? '처리 중...' : '📋 이미지 복사 (카톡 붙여넣기)'}</span>
+            <Camera size={15} />
+            <span>{isSavingImage ? '처리 중...' : '카톡 전송 (복사)'}</span>
           </button>
 
           <button
             onClick={handleDownloadImageFile}
-            className="custom-btn-secondary"
+            className="action-save-btn download-btn"
             disabled={isSavingImage || recommendations.length === 0}
-            title="내 컴퓨터 다운로드 폴더에 PNG 이미지 파일로 저장"
-            style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.35)', background: 'rgba(56, 189, 248, 0.08)' }}
+            title="내 컴퓨터/스마트폰에 PNG 이미지 파일로 저장"
           >
-            <Download size={16} />
+            <Download size={15} />
             <span>파일 저장</span>
           </button>
         </div>
 
+        {/* 행 3: 메인 번호 제안 생성 버튼 (풀 와이드) */}
         <button
           onClick={handleGenerateClick}
           className="generate-hero-btn"
