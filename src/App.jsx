@@ -46,20 +46,17 @@ export default function App() {
     }
   }, [stats]);
 
-  // 모드나 개수 변경 시 재생성
+  // 모드나 개수, 필터 변경 시에는 설정만 변경 (오직 '생성 버튼'을 눌렀을 때만 번호 생성)
   const handleModeChange = (newMode) => {
     setMode(newMode);
-    handleGenerate(newMode, count, includeNumbers, excludeNumbers);
   };
 
   const handleCountChange = (newCount) => {
     setCount(newCount);
-    handleGenerate(mode, newCount, includeNumbers, excludeNumbers);
   };
 
   const handleCloseFilter = () => {
     setIsFilterOpen(false);
-    handleGenerate(mode, count, includeNumbers, excludeNumbers);
   };
 
   return (
