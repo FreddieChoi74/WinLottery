@@ -20,44 +20,67 @@ export default function App() {
   const [excludeNumbers, setExcludeNumbers] = useState([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
-  const [recommendations, setRecommendations] = useState([]);
+  // 3개 모드(황금 밸런스, 상승세 트렌드, 회귀 확률)의 추천 번호를 모두 보관
+  const [recommendationsByMode, setRecommendationsByMode] = useState({
+    balanced: [],
+    hot: [],
+    cold: []
+  });
 
   // 1. 역대 통계 데이터 메모이제이션 (0ms 즉시 계산)
   const stats = useMemo(() => {
     return computeLottoStats(historyData.draws || []);
   }, []);
 
-  // 2. 추천 생성 핸들러
-  const handleGenerate = (targetMode = mode, targetCount = count, inc = includeNumbers, exc = excludeNumbers) => {
+  // 2. [다음주 1등 번호 제안 생성] 클릭 시: 3개 모드를 '동시에' 한 번에 산출!
+  const handleGenerateAll = (targetCount = count, inc = includeNumbers, exc = excludeNumbers) => {
     if (!stats) return;
-    const generated = generateSmartRecommendations(stats, {
-      mode: targetMode,
+    const balanced = generateSmartRecommendations(stats, {
+      mode: 'balanced',
       count: targetCount,
       includeNumbers: inc,
       excludeNumbers: exc
     });
-    setRecommendations(generated);
+    const hot = generateSmartRecommendations(stats, {
+      mode: 'hot',
+      count: targetCount,
+      includeNumbers: inc,
+      excludeNumbers: exc
+    });
+    const cold = generateSmartRecommendations(stats, {
+      mode: 'cold',
+      count: targetCount,
+      includeNumbers: inc,
+      excludeNumbers: exc
+    });
+
+    setRecommendationsByMode({ balanced, hot, cold });
   };
 
-  // 3. 초기 로드 시 1회 자동 생성
+  // 3. 초기 로드 시 3대 모드 전체 일괄 1회 생성
   useEffect(() => {
     if (stats) {
-      handleGenerate('balanced', 5, [], []);
+      handleGenerateAll(5, [], []);
     }
   }, [stats]);
 
-  // 모드나 개수, 필터 변경 시에는 설정만 변경 (오직 '생성 버튼'을 눌렀을 때만 번호 생성)
+  // 상단 모드 탭 클릭 시: 번호를 새로 계산하지 않고, 이미 생성된 해당 모드의 번호 세트로 즉시 화면 전환
   const handleModeChange = (newMode) => {
     setMode(newMode);
   };
 
   const handleCountChange = (newCount) => {
     setCount(newCount);
+    handleGenerateAll(newCount, includeNumbers, excludeNumbers);
   };
 
   const handleCloseFilter = () => {
     setIsFilterOpen(false);
+    handleGenerateAll(count, includeNumbers, excludeNumbers);
   };
+
+  // 현재 선택된 모드의 번호 목록
+  const currentRecommendations = recommendationsByMode[mode] || [];
 
   return (
     <div className="app-container">
@@ -97,8 +120,8 @@ export default function App() {
         {activeTab === 'recommend' && (
           <RecommendationCard
             stats={stats}
-            recommendations={recommendations}
-            onGenerate={() => handleGenerate(mode, count, includeNumbers, excludeNumbers)}
+            recommendations={currentRecommendations}
+            onGenerate={() => handleGenerateAll(count, includeNumbers, excludeNumbers)}
             mode={mode}
             setMode={handleModeChange}
             count={count}
