@@ -67,6 +67,9 @@ export default function RecommendationCard({
     if (!ticketRef.current) return;
     setIsSavingImage(true);
 
+    const modeName = mode === 'balanced' ? '황금밸런스형' : mode === 'hot' ? '상승세트렌드형' : '회귀확률형';
+    const nextDrawNo = stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241;
+
     try {
       const canvas = await html2canvas(ticketRef.current, {
         backgroundColor: '#090d16',
@@ -83,13 +86,11 @@ export default function RecommendationCard({
         }
 
         try {
-          // 순수 이미지(PNG) 바이너리를 클립보드에 직접 복사 -> 카카오톡 PC 버전에서 Ctrl+V 100% 즉시 인식!
           const item = new ClipboardItem({ 'image/png': blob });
           await navigator.clipboard.write([item]);
-          alert('✅ 번호표 이미지가 복사되었습니다!\n\n카카오톡 채팅창을 클릭하고 [Ctrl + V] (붙여넣기)를 누르시면 바로 사진이 전송됩니다.');
+          alert(`✅ [${modeName}] 번호표 이미지가 복사되었습니다!\n\n카카오톡 채팅창을 클릭하고 [Ctrl + V] (붙여넣기)를 누르시면 사진이 바로 전송됩니다.`);
         } catch (clipErr) {
-          // 브라우저 권한 문제 시 파일 다운로드로 대체
-          triggerFileDownload(canvas.toDataURL('image/png'), `LottoScope_제${stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241}회.png`);
+          triggerFileDownload(canvas.toDataURL('image/png'), `LottoScope_제${nextDrawNo}회_[${modeName}]_추천번호.png`);
         }
         setIsSavingImage(false);
       }, 'image/png');
@@ -106,8 +107,9 @@ export default function RecommendationCard({
     setIsSavingImage(true);
 
     try {
+      const modeName = mode === 'balanced' ? '황금밸런스형' : mode === 'hot' ? '상승세트렌드형' : '회귀확률형';
       const nextDrawNo = stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241;
-      const fileName = `LottoScope_제${nextDrawNo}회_추천번호_${mode}.png`;
+      const fileName = `LottoScope_제${nextDrawNo}회_[${modeName}]_추천번호.png`;
 
       const canvas = await html2canvas(ticketRef.current, {
         backgroundColor: '#090d16',
@@ -272,29 +274,61 @@ export default function RecommendationCard({
       </div>
 
       {/* 3. 추천 번호 결과 목록 (이미지 캡처 대상) */}
-      <div ref={ticketRef} style={{ background: 'rgba(9, 13, 22, 0.95)', padding: '1rem', borderRadius: '1.25rem' }}>
-        {/* 캡처 시 표시되는 티켓 워터마크 헤더 */}
+      <div ref={ticketRef} style={{ background: '#090d16', padding: '1.25rem', borderRadius: '1.25rem', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+        {/* 캡처 이미지 상단: 크고 선명한 전략 모드 공식 인증 배너 */}
         <div style={{
+          background: mode === 'balanced' 
+            ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(15, 23, 42, 0.95))'
+            : mode === 'hot'
+            ? 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(15, 23, 42, 0.95))'
+            : 'linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(15, 23, 42, 0.95))',
+          border: `2px solid ${mode === 'balanced' ? '#f59e0b' : mode === 'hot' ? '#ef4444' : '#38bdf8'}`,
+          borderRadius: '1rem',
+          padding: '1.15rem 1.4rem',
+          marginBottom: '1.25rem',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          paddingBottom: '0.85rem',
-          marginBottom: '1rem',
-          borderBottom: '1px dashed rgba(255, 255, 255, 0.15)'
+          flexWrap: 'wrap',
+          gap: '0.85rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
         }}>
           <div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span>🎰 LottoScope 로또 번호표</span>
-              <span style={{ fontSize: '0.75rem', background: '#2563eb', padding: '1px 6px', borderRadius: '4px', color: '#fff' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
+              <span style={{ fontSize: '1.5rem' }}>
+                {mode === 'balanced' ? '🌟' : mode === 'hot' ? '🔥' : '❄️'}
+              </span>
+              <h2 style={{
+                fontSize: '1.4rem',
+                fontWeight: 900,
+                color: mode === 'balanced' ? '#fbbf24' : mode === 'hot' ? '#f87171' : '#38bdf8',
+                letterSpacing: '-0.02em'
+              }}>
+                {modes.find(m => m.id === mode)?.title} 추천번호표
+              </h2>
+              <span style={{
+                fontSize: '0.85rem',
+                background: '#2563eb',
+                padding: '2px 8px',
+                borderRadius: '6px',
+                color: '#fff',
+                fontWeight: 800
+              }}>
                 제 {stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241}회
               </span>
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-              전략: {modes.find(m => m.id === mode)?.title} | 빅데이터 AI 분석 추천
-            </span>
+            <p style={{ fontSize: '0.85rem', color: '#e2e8f0', fontWeight: 500 }}>
+              📌 {modes.find(m => m.id === mode)?.subtitle} | 역대 1,240회 빅데이터 통계 AI 추천
+            </p>
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b', textAlign: 'right' }}>
-            발급일시: {new Date().toLocaleDateString('ko-KR')}
+
+          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '3px' }}>
+            <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#f8fafc' }}>
+              🎰 LottoScope BigData
+            </span>
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+              발급일: {new Date().toLocaleDateString('ko-KR')}
+            </span>
           </div>
         </div>
 
