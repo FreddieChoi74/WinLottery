@@ -62,15 +62,12 @@ export default function RecommendationCard({
   };
 
   // 추천 번호 카드 영역을 고화질 PNG 이미지로 변환하여 갤러리/다운로드에 저장
-  const handleSaveTicketImage = async () => {
+  // 1. 카카오톡 채팅창에 즉시 Ctrl+V 할 수 있도록 '이미지 데이터'를 클립보드에 복사
+  const handleCopyImageToClipboard = async () => {
     if (!ticketRef.current) return;
     setIsSavingImage(true);
 
     try {
-      const nextDrawNo = stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241;
-      const fileName = `LottoScope_제${nextDrawNo}회_추천번호_${mode}.png`;
-
-      // 캡처 실행 (scale 2배수로 선명한 화질 확보)
       const canvas = await html2canvas(ticketRef.current, {
         backgroundColor: '#090d16',
         scale: 2,
@@ -78,38 +75,52 @@ export default function RecommendationCard({
         logging: false
       });
 
-      // 모바일 네이티브 공유 API 지원 시 (iOS / Android 갤러리 저장 및 카톡 전송 지원)
-      if (navigator.canShare && navigator.share) {
-        canvas.toBlob(async (blob) => {
-          if (!blob) {
-            triggerFileDownload(canvas.toDataURL('image/png'), fileName);
-            setIsSavingImage(false);
-            return;
-          }
-          const file = new File([blob], fileName, { type: 'image/png' });
-          if (navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                title: `LottoScope 제 ${nextDrawNo}회 로또 추천 번호`,
-                text: `제 ${nextDrawNo}회 로또 빅데이터 추천 번호입니다.`,
-                files: [file]
-              });
-              setIsSavingImage(false);
-              return;
-            } catch (err) {
-              // 사용자가 취소했거나 브라우저 권한 문제 시 일반 다운로드로 대체
-            }
-          }
-          triggerFileDownload(canvas.toDataURL('image/png'), fileName);
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          alert('이미지 생성에 실패했습니다.');
           setIsSavingImage(false);
-        }, 'image/png');
-      } else {
-        triggerFileDownload(canvas.toDataURL('image/png'), fileName);
+          return;
+        }
+
+        try {
+          // 순수 이미지(PNG) 바이너리를 클립보드에 직접 복사 -> 카카오톡 PC 버전에서 Ctrl+V 100% 즉시 인식!
+          const item = new ClipboardItem({ 'image/png': blob });
+          await navigator.clipboard.write([item]);
+          alert('✅ 번호표 이미지가 복사되었습니다!\n\n카카오톡 채팅창을 클릭하고 [Ctrl + V] (붙여넣기)를 누르시면 바로 사진이 전송됩니다.');
+        } catch (clipErr) {
+          // 브라우저 권한 문제 시 파일 다운로드로 대체
+          triggerFileDownload(canvas.toDataURL('image/png'), `LottoScope_제${stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241}회.png`);
+        }
         setIsSavingImage(false);
-      }
+      }, 'image/png');
     } catch (err) {
-      console.error('이미지 저장 오류:', err);
-      alert('이미지 저장 중 오류가 발생했습니다.');
+      console.error('이미지 복사 오류:', err);
+      alert('이미지 복사 중 오류가 발생했습니다.');
+      setIsSavingImage(false);
+    }
+  };
+
+  // 2. 내 컴퓨터 '다운로드' 폴더에 고화질 파일로 직접 저장
+  const handleDownloadImageFile = async () => {
+    if (!ticketRef.current) return;
+    setIsSavingImage(true);
+
+    try {
+      const nextDrawNo = stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241;
+      const fileName = `LottoScope_제${nextDrawNo}회_추천번호_${mode}.png`;
+
+      const canvas = await html2canvas(ticketRef.current, {
+        backgroundColor: '#090d16',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+
+      triggerFileDownload(canvas.toDataURL('image/png'), fileName);
+      setIsSavingImage(false);
+    } catch (err) {
+      console.error('다운로드 오류:', err);
+      alert('파일 다운로드 중 오류가 발생했습니다.');
       setIsSavingImage(false);
     }
   };
@@ -121,7 +132,7 @@ export default function RecommendationCard({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    alert('📷 추천 번호 이미지가 기기에 저장되었습니다!\n(스마트폰 사진 갤러리 또는 다운로드 폴더에서 확인하세요)');
+    alert(`💾 파일이 다운로드 폴더에 저장되었습니다!\n파일명: ${fileName}`);
   };
 
   const modes = [
@@ -228,14 +239,25 @@ export default function RecommendationCard({
           </div>
 
           <button
-            onClick={handleSaveTicketImage}
+            onClick={handleCopyImageToClipboard}
             className="custom-btn-secondary"
             disabled={isSavingImage || recommendations.length === 0}
-            title="스마트폰 갤러리 또는 PC에 고화질 영수증 이미지로 저장"
-            style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.35)', background: 'rgba(56, 189, 248, 0.08)' }}
+            title="클릭 후 카카오톡 채팅창에서 [Ctrl + V] 누르면 사진이 바로 전송됩니다"
+            style={{ color: '#fbbf24', borderColor: 'rgba(251, 191, 36, 0.4)', background: 'rgba(251, 191, 36, 0.08)' }}
           >
             <Camera size={16} />
-            <span>{isSavingImage ? '저장 중...' : '이미지 / 갤러리 저장'}</span>
+            <span>{isSavingImage ? '처리 중...' : '📋 이미지 복사 (카톡 붙여넣기)'}</span>
+          </button>
+
+          <button
+            onClick={handleDownloadImageFile}
+            className="custom-btn-secondary"
+            disabled={isSavingImage || recommendations.length === 0}
+            title="내 컴퓨터 다운로드 폴더에 PNG 이미지 파일로 저장"
+            style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.35)', background: 'rgba(56, 189, 248, 0.08)' }}
+          >
+            <Download size={16} />
+            <span>파일 저장</span>
           </button>
         </div>
 
