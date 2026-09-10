@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import confetti from 'canvas-confetti';
+import html2canvas from 'html2canvas';
 import { 
   Sparkles, 
   Flame, 
@@ -11,7 +12,9 @@ import {
   ChevronUp, 
   Info,
   Layers,
-  CheckCircle2
+  CheckCircle2,
+  Camera,
+  Download
 } from 'lucide-react';
 import LottoBall from './LottoBall';
 import RadarChart from './RadarChart';
@@ -31,10 +34,11 @@ export default function RecommendationCard({
   const [expandedGameId, setExpandedGameId] = useState('game-A');
   const [copiedId, setCopiedId] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSavingImage, setIsSavingImage] = useState(false);
+  const ticketRef = useRef(null);
 
   const handleGenerateClick = () => {
     setIsGenerating(true);
-    // 화려한 컨페티 효과
     try {
       confetti({
         particleCount: 70,
@@ -55,6 +59,69 @@ export default function RecommendationCard({
     navigator.clipboard.writeText(text);
     setCopiedId(item.id);
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  // 추천 번호 카드 영역을 고화질 PNG 이미지로 변환하여 갤러리/다운로드에 저장
+  const handleSaveTicketImage = async () => {
+    if (!ticketRef.current) return;
+    setIsSavingImage(true);
+
+    try {
+      const nextDrawNo = stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241;
+      const fileName = `LottoScope_제${nextDrawNo}회_추천번호_${mode}.png`;
+
+      // 캡처 실행 (scale 2배수로 선명한 화질 확보)
+      const canvas = await html2canvas(ticketRef.current, {
+        backgroundColor: '#090d16',
+        scale: 2,
+        useCORS: true,
+        logging: false
+      });
+
+      // 모바일 네이티브 공유 API 지원 시 (iOS / Android 갤러리 저장 및 카톡 전송 지원)
+      if (navigator.canShare && navigator.share) {
+        canvas.toBlob(async (blob) => {
+          if (!blob) {
+            triggerFileDownload(canvas.toDataURL('image/png'), fileName);
+            setIsSavingImage(false);
+            return;
+          }
+          const file = new File([blob], fileName, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            try {
+              await navigator.share({
+                title: `LottoScope 제 ${nextDrawNo}회 로또 추천 번호`,
+                text: `제 ${nextDrawNo}회 로또 빅데이터 추천 번호입니다.`,
+                files: [file]
+              });
+              setIsSavingImage(false);
+              return;
+            } catch (err) {
+              // 사용자가 취소했거나 브라우저 권한 문제 시 일반 다운로드로 대체
+            }
+          }
+          triggerFileDownload(canvas.toDataURL('image/png'), fileName);
+          setIsSavingImage(false);
+        }, 'image/png');
+      } else {
+        triggerFileDownload(canvas.toDataURL('image/png'), fileName);
+        setIsSavingImage(false);
+      }
+    } catch (err) {
+      console.error('이미지 저장 오류:', err);
+      alert('이미지 저장 중 오류가 발생했습니다.');
+      setIsSavingImage(false);
+    }
+  };
+
+  const triggerFileDownload = (dataUrl, fileName) => {
+    const link = document.createElement('a');
+    link.download = fileName;
+    link.href = dataUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert('📷 추천 번호 이미지가 기기에 저장되었습니다!\n(스마트폰 사진 갤러리 또는 다운로드 폴더에서 확인하세요)');
   };
 
   const modes = [
@@ -159,6 +226,17 @@ export default function RecommendationCard({
               5개 (1장 세트)
             </button>
           </div>
+
+          <button
+            onClick={handleSaveTicketImage}
+            className="custom-btn-secondary"
+            disabled={isSavingImage || recommendations.length === 0}
+            title="스마트폰 갤러리 또는 PC에 고화질 영수증 이미지로 저장"
+            style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.35)', background: 'rgba(56, 189, 248, 0.08)' }}
+          >
+            <Camera size={16} />
+            <span>{isSavingImage ? '저장 중...' : '이미지 / 갤러리 저장'}</span>
+          </button>
         </div>
 
         <button
@@ -171,8 +249,34 @@ export default function RecommendationCard({
         </button>
       </div>
 
-      {/* 3. 추천 번호 결과 목록 */}
-      <div className="recommend-game-list">
+      {/* 3. 추천 번호 결과 목록 (이미지 캡처 대상) */}
+      <div ref={ticketRef} style={{ background: 'rgba(9, 13, 22, 0.95)', padding: '1rem', borderRadius: '1.25rem' }}>
+        {/* 캡처 시 표시되는 티켓 워터마크 헤더 */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingBottom: '0.85rem',
+          marginBottom: '1rem',
+          borderBottom: '1px dashed rgba(255, 255, 255, 0.15)'
+        }}>
+          <div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <span>🎰 LottoScope 로또 번호표</span>
+              <span style={{ fontSize: '0.75rem', background: '#2563eb', padding: '1px 6px', borderRadius: '4px', color: '#fff' }}>
+                제 {stats?.latestDraw ? stats.latestDraw.drwNo + 1 : 1241}회
+              </span>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+              전략: {modes.find(m => m.id === mode)?.title} | 빅데이터 AI 분석 추천
+            </span>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#64748b', textAlign: 'right' }}>
+            발급일시: {new Date().toLocaleDateString('ko-KR')}
+          </div>
+        </div>
+
+        <div className="recommend-game-list">
         {recommendations.map((item) => {
           const isExpanded = expandedGameId === item.id;
           const { reasoning, radarMetrics } = item;
@@ -283,6 +387,7 @@ export default function RecommendationCard({
             </div>
           );
         })}
+        </div>
       </div>
     </section>
   );
