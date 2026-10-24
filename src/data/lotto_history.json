@@ -1,7 +1,7 @@
 {
-  "lastUpdated": "2026-10-24 15:53:16",
-  "latestDrawNo": 1246,
-  "totalCount": 1246,
+  "lastUpdated": "2026-10-24 16:14:38",
+  "latestDrawNo": 1247,
+  "totalCount": 1247,
   "draws": [
     {
       "drwNo": 1,
@@ -19938,6 +19938,22 @@
       "firstWinamnt": 1881025430,
       "firstPrzwnerCo": 16,
       "totSellamnt": 121857105000
+    },
+    {
+      "drwNo": 1247,
+      "date": "2026-10-24",
+      "numbers": [
+        8,
+        14,
+        21,
+        22,
+        42,
+        45
+      ],
+      "bonus": 24,
+      "firstWinamnt": 3637439250,
+      "firstPrzwnerCo": 8,
+      "totSellamnt": 118981044000
     }
   ]
 }
